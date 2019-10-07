@@ -1,63 +1,25 @@
 import React from "react";
 import {
-  CanvasGradient,
+  Container,
   Row,
   Col,
   FormGroup,
   FormControl,
-  ControlLabel,
   Button,
-  Alert
+  Alert,
+  FormLabel
 } from "react-bootstrap";
 
-const Api = require("../lib/Api");
+import { authenticateUser } from "../lib/Api";
 
 class AuthSignInComponent extends React.Component {
-  render() {
-    return (
-      <Grid>
-        <Row>
-          <Col xs={12} md={12}>
-            {this.getFormErrors().length > 0 && this.state.formSubmitted && (
-              <Alert bsStyle="danger">
-                <strong>Please correct the following errors: </strong>
-                <ul>
-                  {this.getFormErrors().map(
-                    (message,
-                    index => <li key={`error_message_${index}`}>{message}</li>)
-                  )}
-                </ul>
-              </Alert>
-            )}
+  constructor(props) {
+    super(props);
+    this.state = this.defaultState();
 
-            <form onSubmit={this.handleSubmit}>
-              <FormGroup>
-                <ControlLabel>Email</ControlLabel>
-                <FormControl
-                  id="email"
-                  type="email"
-                  label="Email address"
-                  placeholder="Enter email"
-                  onChange={this.setEmail}
-                />
-              </FormGroup>
-
-              <FormGroup>
-                <ControlLabel>Password</ControlLabel>
-                <FormControl
-                  id="authPassword"
-                  type="password"
-                  label="Password"
-                  placeholder="Enter password"
-                  onChange={this.setPassword}
-                />
-              </FormGroup>
-              <Button type="submit">Login</Button>
-            </form>
-          </Col>
-        </Row>
-      </Grid>
-    );
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.setPassword = this.setPassword.bind(this);
+    this.setEmail = this.setEmail.bind(this);
   }
 
   defaultState() {
@@ -77,22 +39,13 @@ class AuthSignInComponent extends React.Component {
     };
   }
 
-  constructor(props) {
-    super(props);
-    this.state = this.defaultState();
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.setPassword = this.setPassword.bind(this);
-    this.setEmail = this.setEmail.bind(this);
-  }
-
   getFormErrors() {
     let fields = ["email", "password", "submit"];
     let errors = [];
     fields.map(field => {
       let fieldError = this.state[field].error || "";
       if (fieldError.length > 0) {
-        errors.push(fieldError);
+        return errors.push(fieldError);
       }
     });
 
@@ -135,21 +88,66 @@ class AuthSignInComponent extends React.Component {
       return false;
     }
 
-    Api.authenticateUser(
-      this.state.email.value,
-      this.state.password.value
-    ).then(jwt => {
-      if (jwt) {
-        this.props.propagateSignIn(jwt, this.props.history);
-      } else {
-        this.setState({
-          submit: {
-            error:
-              "Sorry, we could not login you in with the credentials provided. Please try again"
-          }
-        });
+    authenticateUser(this.state.email.value, this.state.password.value).then(
+      jwt => {
+        if (jwt) {
+          this.props.propagateSignIn(jwt, this.props.history);
+        } else {
+          this.setState({
+            submit: {
+              error:
+                "Sorry, we could not login you in with the credentials provided. Please try again"
+            }
+          });
+        }
       }
-    });
+    );
+  }
+
+  render() {
+    return (
+      <Container>
+        <Row>
+          <Col xs={12} md={12}>
+            {this.getFormErrors().length > 0 && this.state.formSubmitted && (
+              <Alert variant="danger">
+                <strong>Please correct the following errors: </strong>
+                <ul>
+                  {this.getFormErrors().map((message, index) => (
+                    <li key={`error_message_${index}`}>{message}</li>
+                  ))}
+                </ul>
+              </Alert>
+            )}
+
+            <form onSubmit={this.handleSubmit}>
+              <FormGroup>
+                <FormLabel>Email</FormLabel>
+                <FormControl
+                  id="email"
+                  type="email"
+                  label="Email address"
+                  placeholder="Enter email"
+                  onChange={this.setEmail}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <FormLabel>Password</FormLabel>
+                <FormControl
+                  id="authPassword"
+                  type="password"
+                  label="Password"
+                  placeholder="Enter password"
+                  onChange={this.setPassword}
+                />
+              </FormGroup>
+              <Button type="submit">Login</Button>
+            </form>
+          </Col>
+        </Row>
+      </Container>
+    );
   }
 }
 

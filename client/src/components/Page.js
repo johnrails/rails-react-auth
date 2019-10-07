@@ -1,35 +1,28 @@
 import React from "react";
-import { Grid, Row, Col, Alert } from "react-boostrap";
+import { Container, Row, Col, Alert } from "react-bootstrap";
 
-const Api = require("../lib/Api");
+import { getPage } from "../lib/Api";
 
-class Page extends React.Component {
-  render() {
-    return (
-      <Grid>
-        <Row>
-          <Col xs={12} md={12}>
-            {this.state.flashMessage.message && (
-              <Grid>
-                <Row>
-                  <Col xs={12} md={12}>
-                    <Alert bsStyle={this.state.flashMessage.style}>
-                      {this.state.flashMessage.message}
-                    </Alert>
-                  </Col>
-                </Row>
-              </Grid>
-            )}
+class PageComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      page: {
+        id: props.match.params.id,
+        content: ""
+      },
+      loading: true,
+      flashMessage: {
+        message: undefined,
+        style: "success"
+      }
+    };
 
-            <div>{this.state.page.content}</div>
-          </Col>
-        </Row>
-      </Grid>
-    );
+    this.fetchPage = this.fetchPage.bind(this);
   }
 
   compnentDidMount() {
-    this.getPage();
+    this.fetchPage();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -44,11 +37,12 @@ class Page extends React.Component {
         }
       });
 
-      this.getPage(newPageId);
+      this.fetchPage(newPageId);
     }
   }
 
-  getPage(pageId = null) {
+  fetchPage(pageId = null) {
+    console.log("im getting the page");
     pageId = pageId || this.state.page.id;
     this.setState({
       loading: true,
@@ -59,7 +53,7 @@ class Page extends React.Component {
     });
 
     let jwt = this.props.appState.jwt;
-    Api.getPage(jwt, pageId).then(response => {
+    getPage(jwt, pageId).then(response => {
       if (response) {
         this.setState({
           page: response,
@@ -77,21 +71,29 @@ class Page extends React.Component {
     });
   }
 
-  constructor(props){
-      super(props)
-      this.state = {
-          page: {
-              id: props.match.params.id;
-              content: ''
-          },
-          loading: true,
-          flashMessage: {
-              message: undefined,
-              style: 'success'
-          }
+  render() {
+    return (
+      <Container>
+        <Row>
+          <Col xs={12} md={12}>
+            {this.state.flashMessage.message && (
+              <Container>
+                <Row>
+                  <Col xs={12} md={12}>
+                    <Alert variant={this.state.flashMessage.style}>
+                      {this.state.flashMessage.message}
+                    </Alert>
+                  </Col>
+                </Row>
+              </Container>
+            )}
 
-      }
+            <div>{this.state.page.content}</div>
+          </Col>
+        </Row>
+      </Container>
+    );
   }
 }
 
-export default PageComponent
+export default PageComponent;
